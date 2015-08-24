@@ -9,19 +9,26 @@ Descargar jaaf.ino, abrir con el IDE de Arduino y subirlo a la placa Arduino.
 ##Generalidades
 
 Los mensajes que recibe el arduino cargado con este protocolo deberán ser de la forma
-`#accion;pin;valor;`
+`#accion,val1,val2,val3,...,valN!`
 
-Siendo `#` el caracter que indica el inicio de la cadena y `;` el separador de los parámetros. Si uno de los parámetros no es obligatorio(para pinMode por ejemplo), simplemente no lo pasamos, pero debe incluirse el caracter `;`.
+Siendo `#` el caracter que indica el inicio de la cadena, `!` su fin y `,` el separador de los parámetros.
+Por defecto el mensaje tiene un máximo de 20 caracteres incluyendo los delimitadores(`#!,`)
 
-**Ejemplo**
-`#dr;A0;;`
+**Ejemplos**
+```
+#pm,10,0!
+#dr,10!
+#ar,A0!
+#as,9!
+#st,9,180!
+```
 
 ##Funciones
 A continuación se incluye una lista con las acciones predeterminadas de JAAF
 
 ###pinMode
 
-`#pm;pin;valor;`
+`#pm,pin,valor!`
 
 `valor` puede ser:
 
@@ -31,39 +38,39 @@ A continuación se incluye una lista con las acciones predeterminadas de JAAF
 
 ###digitalRead
 
-`#dr;pin;;`
+`#dr,pin!`
 
-devuelve `#dr;pin;valor;!`
+devuelve `#dr,pin,valor!`
 
 ###digitalWrite
 
-`#dw;pin;valor;`
+`#dw,pin,valor!`
 
 ###analogRead
 
-`#ar;pin;;`
+`#ar,pin!`
 
-devuelve `#ar;pin;valor;!`
+devuelve `#ar,pin,valor!`
 
 ###analogWrite
 
-`#aw;pin;valor;`
+`#aw,pin,valor!`
 
 ###attachServo
 
-`#as;pin;;`
+`#as,pin!`
 
 Asigna un servo al pin `pin`
 
 ###detachServo
 
-`#ds;pin;;`
+`#ds,pin!`
 
 Lo opuesto a attachServo
 
 ###servoToPosition
 
-`#st;pin;valor`
+`#st,pin,valor!`
 
 Mueve el servo asignado al pin `pin` hacia el ángulo `valor`
 

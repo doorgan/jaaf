@@ -1,124 +1,105 @@
-/*
- * JAAF es un micro-framework para comunicar placas Arduino
- * con computadoras mediante comunicación serial.
- */
-
+#include <string.h>
 #include <Servo.h>
 
-Servo servos[48];
-
-#define hash 0x23
-#define semicolon 0x3b 
-#define tagLength 5
-
-int tagIndex = 0;
-
-char com[tagLength], val[tagLength], pin[tagLength];
-
-bool comComplete = false;
-bool valComplete = false;
-bool pinComplete = false;
+#define MAX_SERIAL_LEN 20 // Tamaño máximo del mensaje
+#define BAUDRATE 9600
+char j_inData[MAX_SERIAL_LEN];
+char **j_args;
+byte j_index = 0;
+Servo j_servos[48];
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.println("READY");
+  Serial.begin(BAUDRATE);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if(Serial.available() > 0) {
-    delay(15);
-    readData();
+  jaaf();
+}
+
+
+// Función principal de jaaf
+void jaaf(){
+  if(Serial.available() > 0)
+  {
+    delay(MAX_SERIAL_LEN);
+    char currChar = Serial.read();
+    if(currChar == '#')
+    {
+      while(Serial.available() > 0){
+        currChar = Serial.read();
+        if(currChar == '!')
+        {
+          // Terminamos de leer, ahora parseamos
+          jaaf_parse(j_inData);
+          jaaf_switch(j_args);
+        }
+        else
+        {
+          // Comenzamos a guardar los datos
+          j_inData[j_index] = currChar;
+          j_index++;
+          j_inData[j_index] = '\0';
+        }
+      }
+      // Vaciamos el array dejandolo libre para la próxima iteración
+      for( int i = 0; i < j_index;  i++ ){
+        j_inData[i] = '\0'; 
+      }
+      j_index = 0;
+      j_args = {};
+    }
   }
 }
 
-void readData(){
-  char thisChar = Serial.read();
-  
-  if(thisChar == hash){
-     while(comComplete == false && Serial.available() > 0){
-        char thisChar = Serial.read();
-        if(thisChar == semicolon){
-           comComplete = true;
-           break;
-        }
-        else {
-          com[tagIndex] = thisChar;
-          tagIndex++;
-        }
-     }
-     tagIndex = 0;
-     while(pinComplete == false && Serial.available() > 0){
-        char thisChar = Serial.read();
-        if(thisChar == semicolon){
-          pinComplete = true;
-          break;
-        }
-        else {
-          pin[tagIndex] = thisChar;
-          tagIndex++;
-        }
-     }
-     tagIndex = 0;
-     while(valComplete == false && Serial.available() > 0){
-        char thisChar = Serial.read();
-        if(thisChar == semicolon){
-          valComplete = true;
-          break;
-        }
-        else {
-          val[tagIndex] = thisChar;
-          tagIndex++;
-        }
-     }
-     tagIndex = 0;
-     
-     if(comComplete && valComplete && pinComplete){
-       
-       if(strcmp(com,"pm")==0){    // pin mode
-         pm(pin, val);             // 0 = input; 1 = output
-       }
-       
-       if(strcmp(com,"dr")==0){    // digital read
-         dr(pin);
-       }
-       if(strcmp(com,"dw")==0){    // digital write
-         dw(pin, val);             // 0 = low; 1=high;
-       }
-       
-       if(strcmp(com,"ar")==0){    // analog read
-         ar(pin);
-       }
-       if(strcmp(com,"aw")==0){    // analog write
-         aw(pin, val);
-       }
-       
-       if(strcmp(com,"as")==0){    // attach servo
-         as(pin);
-       }
-       
-       if(strcmp(com,"ds")==0){    // detach servo
-         ds(pin);
-       }
-       
-       if(strcmp(com,"st")==0){    // servo to position
-         st(pin, val);
-       }
-       
-       // Serial.print("com: ");Serial.print(com);Serial.print("; pin: ");Serial.print(pin);Serial.print("; val: ");Serial.println(val);
-     }
-     for (int i=0;i<5;i++){
-       com[i] = 0x00;
-       pin[i] = 0x00;
-       val[i] = 0x00;
-     }
-     
-     comComplete = false;
-     pinComplete = false;
-     valComplete = false;
+// Función para parsear el mensaje recibido
+void jaaf_parse(char *data){
+  char *buf;
+  int i = 0;
+  buf = strtok(data, ",");
+  while(buf != NULL){
+    j_args[++i] = buf;
+    buf = strtok(NULL, ",");
   }
 }
+
+// Dado un array de parámetros, elegimos la acción correspondiente
+void jaaf_switch(char **args){
+  char *com = args[1];
+  char *pin = args[2];
+  char *val = args[3];
+  if(strcmp(com,"pm")==0){    // pin mode
+    pm(pin, val);             // 0 = input; 1 = output
+  }
+ 
+  if(strcmp(com,"dr")==0){    // digital read
+    dr(pin);
+  }
+  if(strcmp(com,"dw")==0){    // digital write
+    dw(pin, val);             // 0 = low; 1=high;
+  }
+ 
+  if(strcmp(com,"ar")==0){    // analog read
+    ar(pin);
+  }
+  if(strcmp(com,"aw")==0){    // analog write
+    aw(pin, val);
+  }
+ 
+  if(strcmp(com,"as")==0){    // attach servo
+    as(pin);
+  }
+ 
+  if(strcmp(com,"ds")==0){    // detach servo
+    ds(pin);
+  }
+ 
+  if(strcmp(com,"st")==0){    // servo to position
+    st(pin, val);
+  }
+}
+
+
+// Funciones generales de arduino
 
 // Pinmode
 void pm(char *pin, char *val){
@@ -136,7 +117,10 @@ void pm(char *pin, char *val){
 // Digital read
 void dr(char *pin){
   int p = atoi(pin);
-  Serial.println( digitalRead(p) );
+  int rval = digitalRead(p);
+  char v[12];
+  sprintf(v,"#dr,%i,%i!", p, rval);
+  Serial.println( v );
 }
 // Digital write
 void dw(char *pin, char *val){
@@ -157,10 +141,8 @@ void ar(char *pin){
   if(p == -1) return;
   pinMode(p, INPUT);
   int rval = analogRead(p);
-  char m[8];
   char v [12];
-  sprintf(m, "%03d", rval);
-  sprintf(v,"#ar;%s;%i;!",pin,rval);
+  sprintf(v,"#ar,%s,%i!",pin,rval);
   Serial.println( v );
 }
 // Analog write
@@ -179,19 +161,19 @@ void aw(char *pin, char *val){
 // Attach servo
 void as(char *pin){
   int p = atoi(pin);
-  servos[p].attach(p);
+  j_servos[p].attach(p);
 }
 // Detach servo
 void ds(char *pin){
   int p = atoi(pin);
-  servos[p].detach();
+  j_servos[p].detach();
 }
 // Servo to position
 void st(char *pin, char *val){
   int p = atoi(pin);
   int pos = atoi(val);
   if(pos >= 0 && pos <= 180){
-    servos[p].write(pos);
+    j_servos[p].write(pos);
   }
 }
 

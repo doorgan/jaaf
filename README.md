@@ -1,11 +1,11 @@
-#JAAF para arduino
+# JAAF para arduino
 JAAF(Just Another Arduino Framework) es un protocolo pensado para ser lo más pequeño, flexible, fácil de comprender y extender para comunicar placas Arduino con computadoras vía comunicación serial.
 
 
-##Instalación
+## Instalación
 Descargar jaaf.ino, abrir con el IDE de Arduino y subirlo a la placa Arduino.
 
-##Cómo usar
+## Cómo usar
 - Dentro de la función `setup` crear una conexión serial.
 - Dentro de la función `loop` llamar a la función `jaaf()`.
 
@@ -44,7 +44,7 @@ void fade(char *pin, char *val, char *time) {
 }
 ```
 
-##Generalidades
+## Generalidades
 
 Los mensajes que recibe el arduino cargado con este protocolo deberán ser de la forma
 `#accion,val1,val2,val3,...,valN!`
@@ -62,10 +62,10 @@ Para cambiar la longitud máxima del mensaje basta con modificar la constante `M
 #st,9,180!
 ```
 
-##Funciones
+## Funciones
 A continuación se incluye una lista con las acciones predeterminadas de JAAF
 
-###pinMode
+### pinMode
 
 `#pm,pin,valor!`
 
@@ -75,45 +75,45 @@ A continuación se incluye una lista con las acciones predeterminadas de JAAF
 
 1 = OUTPUT
 
-###digitalRead
+### digitalRead
 
 `#dr,pin!`
 
 devuelve `#dr,pin,valor!`
 
-###digitalWrite
+### digitalWrite
 
 `#dw,pin,valor!`
 
-###analogRead
+### analogRead
 
 `#ar,pin!`
 
 devuelve `#ar,pin,valor!`
 
-###analogWrite
+### analogWrite
 
 `#aw,pin,valor!`
 
-###attachServo
+### attachServo
 
 `#as,pin!`
 
 Asigna un servo al pin `pin`
 
-###detachServo
+### detachServo
 
 `#ds,pin!`
 
 Lo opuesto a attachServo
 
-###servoToPosition
+### servoToPosition
 
 `#st,pin,valor!`
 
 Mueve el servo asignado al pin `pin` hacia el ángulo `valor`
 
-##Licencia
+## Licencia
 
 Copyright (c) 2015, doorgan <>
 
